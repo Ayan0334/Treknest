@@ -15,7 +15,10 @@ const createTransporter = () => {
       auth: { user, pass },
       tls: {
         rejectUnauthorized: false // avoids SSL handshake errors in some environments
-      }
+      },
+      connectionTimeout: 5000, // 5 seconds connection timeout
+      greetingTimeout: 5000,   // 5 seconds greeting timeout
+      timeout: 5000            // 5 seconds socket timeout
     };
 
     if (host.toLowerCase().includes('gmail')) {
