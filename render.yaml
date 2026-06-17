@@ -44,7 +44,4 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        fromService:
-          name: treknest-backend
-          type: web
-          property: url
+        sync: false # Must be supplied manually after backend is deployed (e.g., https://treknest-backend.onrender.com)
