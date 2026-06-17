@@ -56,7 +56,70 @@ exports.sendOtpEmail = async (email, otp) => {
     </div>
   `;
 
-  // 1. Try Resend HTTP API if configured (bypasses Render Free Tier port block)
+  // 1. Try Gmail REST API if configured (bypasses Render Free Tier port block, sends from Gmail account)
+  if (process.env.GMAIL_CLIENT_ID && process.env.GMAIL_CLIENT_SECRET && process.env.GMAIL_REFRESH_TOKEN) {
+    try {
+      const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          client_id: process.env.GMAIL_CLIENT_ID,
+          client_secret: process.env.GMAIL_CLIENT_SECRET,
+          refresh_token: process.env.GMAIL_REFRESH_TOKEN,
+          grant_type: 'refresh_token'
+        })
+      });
+
+      const tokenData = await tokenResponse.json();
+      if (!tokenResponse.ok) {
+        throw new Error(tokenData.error_description || tokenData.error || 'Failed to refresh Google OAuth token');
+      }
+
+      const accessToken = tokenData.access_token;
+      const fromEmail = process.env.SMTP_USER || 'treknest.support@gmail.com';
+
+      // Construct RFC 2822 email format
+      const rawMessage = [
+        `From: "TrekNest Support" <${fromEmail}>`,
+        `To: ${email}`,
+        `Subject: ${otp} is your TrekNest Verification Code`,
+        'Content-Type: text/html; charset=utf-8',
+        'MIME-Version: 1.0',
+        '',
+        emailHtml
+      ].join('\r\n');
+
+      // Encode using base64url format
+      const encodedMessage = Buffer.from(rawMessage)
+        .toString('base64')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+
+      const sendResponse = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          raw: encodedMessage
+        })
+      });
+
+      const sendData = await sendResponse.json();
+      if (sendResponse.ok) {
+        console.log(`[Gmail API] Verification email successfully sent to ${email} (ID: ${sendData.id})`);
+        return true;
+      } else {
+        console.error('[Gmail API] Send message failed:', sendData.error?.message || sendData);
+      }
+    } catch (err) {
+      console.error('[Gmail API] Failed to send email via HTTP API:', err.message);
+    }
+  }
+
+  // 2. Try Resend HTTP API if configured (bypasses Render Free Tier port block)
   if (process.env.RESEND_API_KEY) {
     try {
       const fromEmail = process.env.RESEND_FROM_EMAIL || 'TrekNest <onboarding@resend.dev>';
