@@ -47,8 +47,13 @@ exports.sendOtp = async (req, res) => {
       message: `Verification code successfully sent to ${email}`
     };
 
-    // Only expose OTP in client payload when SMTP is not configured for developer convenience
-    if (!process.env.SMTP_HOST) {
+    // Expose OTP in client payload for developer convenience if no email service is configured
+    const emailConfigured = 
+      (process.env.GMAIL_CLIENT_ID && process.env.GMAIL_CLIENT_SECRET && process.env.GMAIL_REFRESH_TOKEN) ||
+      process.env.RESEND_API_KEY ||
+      (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+
+    if (!emailConfigured) {
       responseData.otp = otp;
     }
 

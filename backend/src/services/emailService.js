@@ -173,8 +173,8 @@ exports.sendOtpEmail = async (email, otp) => {
   } else {
     console.log(`\n=============================================================`);
     console.log(`[TrekNest OTP] Verification code for ${email}: ${otp}`);
-    console.log(`[Warning] SMTP credentials and RESEND_API_KEY not set. Email not sent.`);
+    console.log(`[Warning] Email credentials not fully set. Falling back to Developer Mock Mode.`);
     console.log(`=============================================================\n`);
-    return false;
+    return true; // Return true to allow developer mock flow to succeed
   }
 };
