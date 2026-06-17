@@ -24,6 +24,10 @@ services:
         sync: false # Must be supplied manually (Gmail address for OTP notifications)
       - key: SMTP_PASS
         sync: false # Must be supplied manually (Gmail App Password)
+      - key: RESEND_API_KEY
+        sync: false # Optional: Resend API Key for sending emails via HTTP API on Render Free tier
+      - key: RESEND_FROM_EMAIL
+        value: TrekNest <onboarding@resend.dev> # Optional: Resend sender email address
       - key: RAZORPAY_KEY_ID
         sync: false # Optional: Razorpay Public Key for payments
       - key: RAZORPAY_KEY_SECRET
