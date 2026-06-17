@@ -1,0 +1,50 @@
+services:
+  # 1. Express API Backend Service
+  - type: web
+    name: treknest-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false # Must be supplied manually (MongoDB Atlas Connection URI)
+      - key: JWT_SECRET
+        generateValue: true # Generates a cryptographically secure random token automatically
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USER
+        sync: false # Must be supplied manually (Gmail address for OTP notifications)
+      - key: SMTP_PASS
+        sync: false # Must be supplied manually (Gmail App Password)
+      - key: RAZORPAY_KEY_ID
+        sync: false # Optional: Razorpay Public Key for payments
+      - key: RAZORPAY_KEY_SECRET
+        sync: false # Optional: Razorpay Secret Key for signatures
+
+  # 2. React + Vite Frontend Static Site
+  - type: web
+    name: treknest-frontend
+    env: static
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    publishPath: dist
+    routes:
+      # Direct all page routes to index.html to support React Router single-page application paths
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: treknest-backend
+          type: web
+          property: url
