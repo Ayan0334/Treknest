@@ -47,8 +47,8 @@ exports.sendOtp = async (req, res) => {
       message: `Verification code successfully sent to ${email}`
     };
 
-    // Only expose OTP in client payload when SMTP credentials are not fully configured for developer convenience
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    // Only expose OTP in client payload when SMTP is not configured for developer convenience
+    if (!process.env.SMTP_HOST) {
       responseData.otp = otp;
     }
 
@@ -66,8 +66,12 @@ exports.loginOtp = async (req, res) => {
   }
 
   try {
-    // Verify OTP matching
-    const record = await db.otps.findOne({ email: email.toLowerCase(), otp });
+    // Verify OTP matching and check expiresAt programmatically
+    const record = await db.otps.findOne({
+      email: email.toLowerCase(),
+      otp,
+      expiresAt: { $gt: new Date() }
+    });
     if (!record) {
       return res.status(400).json({ message: 'Invalid, expired, or incorrect verification OTP.' });
     }
@@ -118,8 +122,12 @@ exports.register = async (req, res) => {
       }
     }
 
-    // Verify signup OTP
-    const record = await db.otps.findOne({ email: email.toLowerCase(), otp });
+    // Verify signup OTP and check expiresAt programmatically
+    const record = await db.otps.findOne({
+      email: email.toLowerCase(),
+      otp,
+      expiresAt: { $gt: new Date() }
+    });
     if (!record) {
       return res.status(400).json({ message: 'Invalid or expired verification OTP.' });
     }
