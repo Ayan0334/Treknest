@@ -30,9 +30,8 @@ services:
         sync: false # Optional: Razorpay Secret Key for signatures
 
   # 2. React + Vite Frontend Static Site
-  - type: web
+  - type: static
     name: treknest-frontend
-    env: static
     plan: free
     rootDir: frontend
     buildCommand: npm install && npm run build
