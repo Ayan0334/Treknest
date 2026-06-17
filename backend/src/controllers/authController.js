@@ -37,7 +37,10 @@ exports.sendOtp = async (req, res) => {
     await db.otps.create({ email: email.toLowerCase(), otp });
 
     // Send actual email via nodemailer
-    await sendOtpEmail(email.toLowerCase(), otp);
+    const emailSent = await sendOtpEmail(email.toLowerCase(), otp);
+    if (!emailSent) {
+      return res.status(500).json({ message: 'Failed to dispatch verification email. Please check server SMTP credentials.' });
+    }
 
     const responseData = {
       status: 'success',
