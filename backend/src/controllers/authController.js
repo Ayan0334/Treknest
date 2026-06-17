@@ -47,8 +47,8 @@ exports.sendOtp = async (req, res) => {
       message: `Verification code successfully sent to ${email}`
     };
 
-    // Only expose OTP in client payload when SMTP is not configured for developer convenience
-    if (!process.env.SMTP_HOST) {
+    // Only expose OTP in client payload when SMTP credentials are not fully configured for developer convenience
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
       responseData.otp = otp;
     }
 

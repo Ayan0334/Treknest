@@ -74,6 +74,6 @@ exports.sendOtpEmail = async (email, otp) => {
     console.log(`[TrekNest OTP] Verification code for ${email}: ${otp}`);
     console.log(`[Warning] SMTP credentials not set. Email not sent.`);
     console.log(`=============================================================\n`);
-    return false;
+    return true;
   }
 };
