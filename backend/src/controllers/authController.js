@@ -36,10 +36,10 @@ exports.sendOtp = async (req, res) => {
     // Save to OTP database
     await db.otps.create({ email: email.toLowerCase(), otp });
 
-    // Send actual email via nodemailer
-    const emailSent = await sendOtpEmail(email.toLowerCase(), otp);
-    if (!emailSent) {
-      return res.status(500).json({ message: 'Failed to dispatch verification email. Please check server SMTP credentials.' });
+    // Send email (Gmail API, Resend, or SMTP fallback)
+    const emailResult = await sendOtpEmail(email.toLowerCase(), otp);
+    if (!emailResult.success) {
+      return res.status(500).json({ message: `Failed to dispatch verification email: ${emailResult.error}` });
     }
 
     const responseData = {
@@ -47,13 +47,13 @@ exports.sendOtp = async (req, res) => {
       message: `Verification code successfully sent to ${email}`
     };
 
-    // Expose OTP in client payload for developer convenience if no email service is configured
+    // Expose OTP in client payload for developer convenience if no email service is configured or falls back to mock
     const emailConfigured = 
       (process.env.GMAIL_CLIENT_ID && process.env.GMAIL_CLIENT_SECRET && process.env.GMAIL_REFRESH_TOKEN) ||
       process.env.RESEND_API_KEY ||
       (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
 
-    if (!emailConfigured) {
+    if (!emailConfigured || emailResult.isMock) {
       responseData.otp = otp;
     }
 

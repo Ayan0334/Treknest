@@ -110,12 +110,15 @@ exports.sendOtpEmail = async (email, otp) => {
       const sendData = await sendResponse.json();
       if (sendResponse.ok) {
         console.log(`[Gmail API] Verification email successfully sent to ${email} (ID: ${sendData.id})`);
-        return true;
+        return { success: true };
       } else {
-        console.error('[Gmail API] Send message failed:', sendData.error?.message || sendData);
+        const errMsg = sendData.error?.message || JSON.stringify(sendData);
+        console.error('[Gmail API] Send message failed:', errMsg);
+        return { success: false, error: `Gmail API error: ${errMsg}` };
       }
     } catch (err) {
       console.error('[Gmail API] Failed to send email via HTTP API:', err.message);
+      return { success: false, error: `Gmail API failed: ${err.message}` };
     }
   }
 
@@ -140,16 +143,19 @@ exports.sendOtpEmail = async (email, otp) => {
       const data = await response.json();
       if (response.ok) {
         console.log(`[Resend] Verification email successfully sent to ${email} (ID: ${data.id})`);
-        return true;
+        return { success: true };
       } else {
-        console.error('[Resend] API returned an error:', data.message || data);
+        const errMsg = data.message || JSON.stringify(data);
+        console.error('[Resend] API returned an error:', errMsg);
+        return { success: false, error: `Resend API error: ${errMsg}` };
       }
     } catch (err) {
       console.error('[Resend] Failed to send email via HTTP API:', err.message);
+      return { success: false, error: `Resend API failed: ${err.message}` };
     }
   }
 
-  // 2. Fallback to standard SMTP
+  // 3. Fallback to standard SMTP
   const transporter = createTransporter();
   if (transporter) {
     try {
@@ -160,21 +166,20 @@ exports.sendOtpEmail = async (email, otp) => {
         html: emailHtml
       });
       console.log(`[SMTP] Verification email sent to ${email}`);
-      return true;
+      return { success: true };
     } catch (err) {
       console.error('[SMTP] Failed to send verification email:', err.message);
+      let errorDetail = err.message;
       if (err.code === 'ETIMEOUT' || err.message.toLowerCase().includes('timeout')) {
-        console.error('\n[Render SMTP Block Warning]');
-        console.error('SMTP connection timed out. If you are hosting on Render\'s Free Tier, standard SMTP ports (25, 465, 587) are blocked.');
-        console.error('To resolve this, please sign up for a free account at Resend.com and configure RESEND_API_KEY in your Render environment variables.\n');
+        errorDetail = 'SMTP connection timed out. Standard SMTP ports (25, 465, 587) are blocked on Render Free Tier.';
       }
-      return false;
+      return { success: false, error: `SMTP failed: ${errorDetail}` };
     }
   } else {
     console.log(`\n=============================================================`);
     console.log(`[TrekNest OTP] Verification code for ${email}: ${otp}`);
     console.log(`[Warning] Email credentials not fully set. Falling back to Developer Mock Mode.`);
     console.log(`=============================================================\n`);
-    return true; // Return true to allow developer mock flow to succeed
+    return { success: true, isMock: true };
   }
 };
