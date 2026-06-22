@@ -23,14 +23,17 @@ const storage = multer.diskStorage({
   }
 });
 
-// File Filter for Images
+// File Filter for Images and Videos
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  const allowedTypes = [
+    'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+    'video/mp4', 'video/webm', 'video/quicktime'
+  ];
   const ext = path.extname(file.originalname).toLowerCase();
-  const allowedExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+  const allowedExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4', '.webm', '.mov'];
 
   if (!allowedTypes.includes(file.mimetype) || !allowedExts.includes(ext)) {
-    cb(new Error('Invalid file type or extension. Only JPEG, PNG, GIF, and WEBP are allowed.'), false);
+    cb(new Error('Invalid file type or extension. Only JPEG, PNG, GIF, WEBP images and MP4, WEBM, MOV videos are allowed.'), false);
   } else {
     cb(null, true);
   }
@@ -39,7 +42,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+  limits: { fileSize: 25 * 1024 * 1024 } // 25MB limit (needed for videos)
 });
 
 // Configure Cloudinary if credentials exist
@@ -69,7 +72,8 @@ router.post('/', upload.single('image'), async (req, res) => {
     // If Cloudinary is configured, upload to Cloudinary and return its URL
     if (isCloudinaryConfigured()) {
       const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: 'treknest'
+        folder: 'treknest',
+        resource_type: 'auto'
       });
       // Delete local temporary file after upload
       fs.unlinkSync(req.file.path);

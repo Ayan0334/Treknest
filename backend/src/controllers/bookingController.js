@@ -14,7 +14,7 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
 }
 
 exports.createOrder = async (req, res) => {
-  const { trekId, slots } = req.body;
+  const { trekId, slots, postId } = req.body;
   const numSlots = parseInt(slots) || 1;
 
   try {
@@ -65,7 +65,8 @@ exports.createOrder = async (req, res) => {
       trekTitle: trek.title,
       paymentStatus: 'pending',
       bookingStatus: 'pending',
-      attendanceConfirmed: false
+      attendanceConfirmed: false,
+      postId: postId || null
     });
 
     res.status(200).json({
@@ -146,6 +147,17 @@ exports.verifyPayment = async (req, res) => {
       paymentStatus: 'paid',
       bookingStatus: 'confirmed'
     });
+
+    // Attribute Booking generated to Post if postId was specified
+    if (booking.postId) {
+      try {
+        const Post = require('../models/Post');
+        await Post.findByIdAndUpdate(booking.postId, { $inc: { bookingsCount: 1 } });
+        console.log(`[Attribution] Successfully incremented bookingsCount on Post: ${booking.postId}`);
+      } catch (postErr) {
+        console.error('Failed to attribute booking to post:', postErr.message);
+      }
+    }
 
     // Reduce trek slots safely
     const trekIdStr = booking.trekId && booking.trekId._id 

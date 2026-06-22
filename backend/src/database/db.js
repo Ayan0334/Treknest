@@ -9,6 +9,10 @@ const Booking = require('../models/Booking');
 const Review = require('../models/Review');
 const Notification = require('../models/Notification');
 const Otp = require('../models/Otp');
+const Post = require('../models/Post');
+const Like = require('../models/Like');
+const SavedPost = require('../models/SavedPost');
+const Follow = require('../models/Follow');
 
 const useMongoose = () => {
   return true; // Strictly Mongoose now
@@ -203,6 +207,79 @@ const db = {
     },
     findByIdAndUpdate: async (id, data) => {
       return Notification.findByIdAndUpdate(id, data, { new: true });
+    }
+  },
+  posts: {
+    find: async (filter = {}) => {
+      return Post.find(filter).populate('author').populate('relatedTrek').lean();
+    },
+    findOne: async (filter = {}) => {
+      return Post.findOne(filter).populate('author').populate('relatedTrek');
+    },
+    findById: async (id) => {
+      return Post.findById(id).populate('author').populate('relatedTrek');
+    },
+    create: async (data) => {
+      const post = new Post(data);
+      await post.save();
+      return post;
+    },
+    findByIdAndUpdate: async (id, data) => {
+      return Post.findByIdAndUpdate(id, data, { new: true }).populate('author').populate('relatedTrek');
+    },
+    findByIdAndDelete: async (id) => {
+      return Post.findByIdAndDelete(id);
+    }
+  },
+  likes: {
+    find: async (filter = {}) => {
+      return Like.find(filter).lean();
+    },
+    findOne: async (filter = {}) => {
+      return Like.findOne(filter);
+    },
+    create: async (data) => {
+      const like = new Like(data);
+      await like.save();
+      return like;
+    },
+    deleteOne: async (filter = {}) => {
+      return Like.deleteOne(filter);
+    },
+    deleteMany: async (filter = {}) => {
+      return Like.deleteMany(filter);
+    }
+  },
+  savedPosts: {
+    find: async (filter = {}) => {
+      return SavedPost.find(filter).populate({ path: 'postId', populate: { path: 'author' } }).lean();
+    },
+    findOne: async (filter = {}) => {
+      return SavedPost.findOne(filter);
+    },
+    create: async (data) => {
+      const saved = new SavedPost(data);
+      await saved.save();
+      return saved;
+    },
+    deleteOne: async (filter = {}) => {
+      return SavedPost.deleteOne(filter);
+    }
+  },
+  follows: {
+    find: async (filter = {}) => {
+      return Follow.find(filter).lean();
+    },
+    findOne: async (filter = {}) => {
+      return Follow.findOne(filter);
+    },
+    create: async (data) => {
+      const follow = new Follow(data);
+      await follow.save();
+      return follow;
+    },
+    deleteOne: async (filter = {}) => {
+      return Follow.deleteOne(filter);
     }
   }
 };

@@ -45,6 +45,7 @@ exports.getAllGuides = async (req, res) => {
 
       return {
         _id: g._id,
+        userId: g.userId?._id || g.userId,
         name: g.name,
         location: g.location,
         services: g.services,

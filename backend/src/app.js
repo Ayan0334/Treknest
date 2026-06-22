@@ -12,6 +12,7 @@ const reviewRoutes = require('./routes/reviewRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
+const postRoutes = require('./routes/postRoutes');
 
 const app = express();
 
@@ -60,6 +61,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/posts', postRoutes);
 
 
 // Health check endpoint

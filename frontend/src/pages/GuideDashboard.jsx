@@ -6,6 +6,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { ClimbingLoader } from '../components/CustomAnimations';
 import ImageUploader from '../components/ImageUploader';
+import StoriesManager from '../components/StoriesManager';
 
 export default function GuideDashboard() {
   const { user, token, loading: authLoading, refreshUserData } = useAuth();
@@ -17,21 +18,24 @@ export default function GuideDashboard() {
     }
   }, [user, authLoading, navigate]);
 
-  // States
   const [guideProfile, setGuideProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('profile'); // profile, stories
   
   // User profile states
   const [profileName, setProfileName] = useState(user?.name || '');
   const [profileCountryCode, setProfileCountryCode] = useState('+91');
   const [profileLocalPhone, setProfileLocalPhone] = useState('');
   const [profilePhoto, setProfilePhoto] = useState(user?.profilePhoto || '');
+  const [bio, setBio] = useState(user?.bio || '');
 
   // Form edit states
   const [location, setLocation] = useState('Darjeeling');
   const [selectedServices, setSelectedServices] = useState([]);
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [charge, setCharge] = useState(49);
+  const [experienceYears, setExperienceYears] = useState(0);
+  const [totalTreksConducted, setTotalTreksConducted] = useState(0);
   const [updating, setUpdating] = useState(false);
 
   // Subscription / Payment states
@@ -74,6 +78,7 @@ export default function GuideDashboard() {
       setProfileCountryCode(parsed.code);
       setProfileLocalPhone(parsed.local);
       setProfilePhoto(user.profilePhoto || '');
+      setBio(user.bio || '');
     }
   }, [user]);
 
@@ -92,6 +97,8 @@ export default function GuideDashboard() {
           setSelectedServices(profile.services || []);
           setWhatsappNumber(profile.whatsappNumber);
           setCharge(profile.charge || 49);
+          setExperienceYears(profile.experienceYears || 0);
+          setTotalTreksConducted(profile.totalTreksConducted || 0);
         }
       }
     } catch (err) {
@@ -247,7 +254,8 @@ export default function GuideDashboard() {
       await axios.put('http://localhost:5000/api/auth/profile', {
         name: profileName,
         phone: fullPhone,
-        profilePhoto
+        profilePhoto,
+        bio
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -257,7 +265,9 @@ export default function GuideDashboard() {
         location,
         services: selectedServices,
         whatsappNumber: fullPhone,
-        charge
+        charge,
+        experienceYears,
+        totalTreksConducted
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -362,7 +372,25 @@ export default function GuideDashboard() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Tabs */}
+      <div className="flex border-b border-white/10 overflow-x-auto gap-4">
+        {[
+          { id: 'profile', label: 'Guide Profile' },
+          { id: 'stories', label: 'My Stories' }
+        ].map(t => (
+          <button
+            key={t.id}
+            onClick={() => setActiveTab(t.id)}
+            className={`pb-4 px-2 text-xs font-bold uppercase tracking-wider transition-all border-b-2 whitespace-nowrap ${activeTab === t.id ? 'border-adventure-yellow text-adventure-yellow' : 'border-transparent text-adventure-muted hover:text-white'}`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="min-h-[40vh]">
+        {activeTab === 'profile' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Left 2 columns: Edit Profile */}
         <div className="lg:col-span-2 glass-panel p-6 rounded-2xl border border-white/5 space-y-6">
@@ -445,6 +473,43 @@ export default function GuideDashboard() {
               </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-[10px] uppercase font-bold text-adventure-muted block">Experience (Years)</label>
+                <input
+                  required
+                  type="number"
+                  min="0"
+                  value={experienceYears}
+                  onChange={(e) => setExperienceYears(parseInt(e.target.value) || 0)}
+                  className="w-full bg-[#121212] border border-white/10 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-adventure-yellow"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] uppercase font-bold text-adventure-muted block">Summit Conduct Levels (Total Treks Conducted)</label>
+                <input
+                  required
+                  type="number"
+                  min="0"
+                  value={totalTreksConducted}
+                  onChange={(e) => setTotalTreksConducted(parseInt(e.target.value) || 0)}
+                  className="w-full bg-[#121212] border border-white/10 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-adventure-yellow"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] uppercase font-bold text-adventure-muted block">Guide Bio / Summary</label>
+              <textarea
+                rows="3"
+                placeholder="Briefly describe your climbing experience, regions you guide, safety skills..."
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                className="w-full bg-[#121212] border border-white/10 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-adventure-yellow resize-none"
+              />
+            </div>
+
             <div className="space-y-1.5">
               <label className="text-[10px] uppercase font-bold text-adventure-muted block mb-1">Services Offered</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -495,6 +560,12 @@ export default function GuideDashboard() {
           </div>
         </div>
 
+          </div>
+        )}
+        
+        {activeTab === 'stories' && (
+          <StoriesManager token={token} user={user} />
+        )}
       </div>
 
       {/* Checkout Payment Gateway Modal */}

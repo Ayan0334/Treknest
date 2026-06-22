@@ -59,6 +59,14 @@ const GuideSchema = new mongoose.Schema({
   activeUntil: {
     type: Date
   },
+  experienceYears: {
+    type: Number,
+    default: 0
+  },
+  totalTreksConducted: {
+    type: Number,
+    default: 0
+  },
   createdAt: {
     type: Date,
     default: Date.now

@@ -97,6 +97,7 @@ export default function Navbar() {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-6">
           <Link to="/search" className="text-sm font-semibold tracking-wider hover:text-adventure-yellow transition-colors uppercase">Explore Treks</Link>
+          <Link to="/stories" className="text-sm font-semibold tracking-wider hover:text-adventure-yellow transition-colors uppercase">Stories</Link>
           <Link to="/guides" className="text-sm font-semibold tracking-wider hover:text-adventure-yellow transition-colors uppercase">Find Guides</Link>
           <Link to="/about" className="text-sm font-semibold tracking-wider hover:text-adventure-yellow transition-colors uppercase">About Us</Link>
 
@@ -219,6 +220,13 @@ export default function Navbar() {
               className="block py-2 text-sm font-semibold tracking-widest text-adventure-grey hover:text-adventure-yellow uppercase"
             >
               Explore Treks
+            </Link>
+            <Link 
+              to="/stories" 
+              onClick={() => setIsOpen(false)}
+              className="block py-2 text-sm font-semibold tracking-widest text-adventure-grey hover:text-adventure-yellow uppercase"
+            >
+              Stories
             </Link>
             <Link 
               to="/guides" 

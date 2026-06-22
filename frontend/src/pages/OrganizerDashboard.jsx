@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { ClimbingLoader } from '../components/CustomAnimations';
 import ImageUploader from '../components/ImageUploader';
 import MultiImageUploader from '../components/MultiImageUploader';
+import StoriesManager from '../components/StoriesManager';
 
 
 export default function OrganizerDashboard() {
@@ -566,6 +567,7 @@ export default function OrganizerDashboard() {
           { id: 'events', label: 'My Events', count: events.length },
           { id: 'create', label: 'Publish Event', count: 0 },
           { id: 'bookings', label: 'Live Registrations', count: bookings.filter(b => !b.attendanceConfirmed).length },
+          { id: 'stories', label: 'My Stories', count: 0 },
           { id: 'subscription', label: 'Subscription Plan', count: 0 },
           { id: 'profile', label: 'Leader Profile', count: 0 }
         ].map(t => (
@@ -698,6 +700,11 @@ export default function OrganizerDashboard() {
               ))
             )}
           </div>
+        )}
+
+        {/* My Stories */}
+        {activeTab === 'stories' && (
+          <StoriesManager token={token} user={user} />
         )}
 
         {/* Create Event */}

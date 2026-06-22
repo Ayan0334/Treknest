@@ -8,6 +8,7 @@ const Trek = require('../models/Trek');
 const Booking = require('../models/Booking');
 const Review = require('../models/Review');
 const Notification = require('../models/Notification');
+const Post = require('../models/Post');
 
 async function seedDatabase() {
   try {
@@ -262,6 +263,78 @@ async function seedDatabase() {
       readStatus: false
     });
     await notification.save();
+
+    // 9. Create Demo Stories (Trek Stories)
+    console.log('Creating demo stories...');
+    const post1 = new Post({
+      title: "Sunrise at Sandakphu: A Magical Expedition",
+      slug: "sunrise-at-sandakphu-a-magical-expedition",
+      description: "Witnessing the sun rise over the Kanchenjunga range from Sandakphu is a spiritual experience. This expedition report outlines the details of our June trek, including photos of the sleeping buddha formation. We started our trek early in the morning from Tumling, walking through thick mist before the sky opened up at the summit.",
+      location: "Sandakphu",
+      trekTag: "Sandakphu",
+      coverImage: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=800",
+      images: [
+        "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800",
+        "https://images.unsplash.com/photo-1486915309851-b0cc1f8a0084?w=800"
+      ],
+      relatedTrek: trek1._id,
+      author: guideUser1._id,
+      postType: "experience",
+      status: "published",
+      publishDate: new Date(),
+      viewsCount: 45,
+      likesCount: 12,
+      savesCount: 6
+    });
+    await post1.save();
+
+    const post2 = new Post({
+      title: "Living Root Bridges: Current Trail Conditions June 2026",
+      slug: "living-root-bridges-current-trail-conditions-june-2026",
+      description: "We just returned from leading an expedition to the Double Decker Living Root Bridge in Cherrapunji. Here is a detailed report on trail conditions, weather forecasts, and permit requirements for upcoming trekkers. The steps down to Nongriat village are steep but fully clear. Water crossings are active and extremely scenic.",
+      location: "Meghalaya",
+      trekTag: "Root Bridges",
+      coverImage: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800",
+      images: [
+        "https://images.unsplash.com/photo-1472396961693-142e6e269027?w=800"
+      ],
+      relatedTrek: trek2._id,
+      author: organizerUser._id,
+      postType: "report",
+      status: "published",
+      publishDate: new Date(),
+      viewsCount: 82,
+      likesCount: 24,
+      savesCount: 15,
+      reportDetails: {
+        weatherConditions: "Humid with light afternoon showers, typical for Meghalaya in June.",
+        difficultyLevel: "Moderate (steep stairs downwards and upwards).",
+        routeCondition: "Wet and slightly slippery, trekking poles recommended.",
+        permitStatus: "No special permits required for Indian nationals.",
+        waterAvailability: "Clean stream water available at multiple points along the trail.",
+        additionalNotes: "Ensure you carry a lightweight raincoat and insect repellent."
+      }
+    });
+    await post2.save();
+
+    const post3 = new Post({
+      title: "Goechala Pass High-Altitude Vlog",
+      slug: "goechala-pass-high-altitude-vlog",
+      description: "Check out our high-altitude video logs from our Goechala expedition. Walking through dense Kanchenjunga National Park and ascending to Samiti Lake and the first viewpoint. The view of Kanchenjunga at sunrise was breathtaking.",
+      location: "Sikkim",
+      trekTag: "Goechala",
+      coverImage: "https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=800",
+      images: [],
+      relatedTrek: trek3._id,
+      author: guideUser1._id,
+      postType: "vlog",
+      status: "published",
+      publishDate: new Date(),
+      viewsCount: 56,
+      likesCount: 18,
+      savesCount: 9
+    });
+    await post3.save();
 
     console.log('Seeder complete! Database populated successfully.');
   } catch (err) {

@@ -73,7 +73,7 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-4xl sm:text-7xl font-black uppercase tracking-tight text-white mb-6 leading-tight"
           >
-            Conquer the <span className="text-gradient-yellow">Himalayan</span> Peaks
+            Conquer the <span className="text-gradient-yellow">Himalayas</span> 
           </motion.h1>
 
           <motion.p

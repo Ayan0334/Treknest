@@ -23,6 +23,9 @@ import GuideDashboard from './pages/GuideDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
+import Stories from './pages/Stories';
+import StoryDetails from './pages/StoryDetails';
+import LeaderProfile from './pages/LeaderProfile';
 
 // Initialize React Query Client
 const queryClient = new QueryClient({
@@ -63,6 +66,9 @@ export default function App() {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<TermsOfService />} />
+                <Route path="/stories" element={<Stories />} />
+                <Route path="/stories/:slug" element={<StoryDetails />} />
+                <Route path="/leaders/:id" element={<LeaderProfile />} />
                 
                 {/* Auth Pages */}
                 <Route path="/login" element={<Login />} />

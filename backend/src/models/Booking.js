@@ -49,6 +49,10 @@ const BookingSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  postId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Post'
+  },
   createdAt: {
     type: Date,
     default: Date.now

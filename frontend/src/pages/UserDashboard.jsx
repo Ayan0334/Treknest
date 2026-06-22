@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Award, Compass, Heart, Bell, Calendar, MapPin, CheckCircle, Navigation, MessageSquare, Phone, User as UserIcon, Users, ShieldCheck, Mail } from 'lucide-react';
+import { Award, Compass, Heart, Bell, Calendar, MapPin, CheckCircle, Navigation, MessageSquare, Phone, User as UserIcon, Users, ShieldCheck, Mail, Bookmark, Eye, Trash2 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { ClimbingLoader, BadgeEarnedCelebration } from '../components/CustomAnimations';
@@ -22,6 +22,8 @@ export default function UserDashboard() {
   const [activeTab, setActiveTab] = useState('bookings');
   const [bookings, setBookings] = useState([]);
   const [wishlist, setWishlist] = useState([]);
+  const [savedPosts, setSavedPosts] = useState([]);
+  const [followingList, setFollowingList] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedBadge, setSelectedBadge] = useState(null);
@@ -175,6 +177,18 @@ export default function UserDashboard() {
       if (notifRes.data.status === 'success') {
         setNotifications(notifRes.data.data.notifications);
       }
+
+      // Fetch saved posts
+      const savedRes = await axios.get('http://localhost:5000/api/posts/saved', config);
+      if (savedRes.data.status === 'success') {
+        setSavedPosts(savedRes.data.data.savedPosts);
+      }
+
+      // Fetch following list
+      const followingRes = await axios.get('http://localhost:5000/api/posts/following', config);
+      if (followingRes.data.status === 'success') {
+        setFollowingList(followingRes.data.data.following);
+      }
     } catch (err) {
       console.error('Error fetching dashboard metrics:', err.message);
     } finally {
@@ -203,6 +217,21 @@ export default function UserDashboard() {
       headers: { Authorization: `Bearer ${token}` }
     });
     setWishlist(wishlistRes.data.data.wishlist);
+  };
+
+  const handleRemoveSaved = async (postId, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!token) return;
+    try {
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const res = await axios.post(`http://localhost:5000/api/posts/${postId}/save`, {}, config);
+      if (res.data.status === 'success') {
+        setSavedPosts(prev => prev.filter(p => p._id !== postId));
+      }
+    } catch (err) {
+      console.error(err.message);
+    }
   };
 
   if (loading || authLoading || !user) return <div className="py-20"><ClimbingLoader message="Preparing your passport..." /></div>;
@@ -314,6 +343,8 @@ export default function UserDashboard() {
         {[
           { id: 'bookings', label: 'My Bookings', count: bookings.length },
           { id: 'wishlist', label: 'Wishlist', count: wishlist.length },
+          { id: 'saved-stories', label: 'Saved Stories', count: savedPosts.length },
+          { id: 'following', label: 'Following', count: followingList.length },
           { id: 'badges', label: 'Achievements', count: user.badges?.length || 0 },
           { id: 'notifications', label: 'Notifications', count: notifications.filter(n => !n.readStatus).length },
           { id: 'profile', label: 'Edit Profile', count: 0 }
@@ -407,6 +438,99 @@ export default function UserDashboard() {
                       className="py-3 px-4 bg-white/5 border border-white/10 hover:border-adventure-yellow/30 font-bold text-xs rounded-xl uppercase tracking-wider text-center flex items-center justify-center"
                     >
                       View Trail
+                    </Link>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Saved Stories */}
+        {activeTab === 'saved-stories' && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {savedPosts.length === 0 ? (
+              <div className="col-span-3 text-center py-16 glass-panel rounded-2xl border border-white/5">
+                <Bookmark size={36} className="text-adventure-muted mx-auto mb-2 animate-pulse" />
+                <p className="text-xs text-adventure-muted uppercase font-bold">No saved stories yet</p>
+                <Link to="/stories" className="mt-3 inline-block text-xs text-adventure-yellow font-bold uppercase hover:underline">Explore Stories</Link>
+              </div>
+            ) : (
+              savedPosts.map((post) => (
+                <div key={post._id} className="rounded-2xl overflow-hidden glass-panel border border-white/5 flex flex-col h-[350px]">
+                  <div className="relative h-36 bg-adventure-charcoal">
+                    <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="p-4 flex flex-col flex-grow">
+                    <span className="text-[8px] font-black uppercase text-adventure-yellow block mb-1">{post.postType}</span>
+                    <h4 className="font-extrabold text-white uppercase text-xs mb-1 line-clamp-2">
+                      <Link to={`/stories/${post.slug}`} className="hover:text-adventure-yellow transition-colors">
+                        {post.title}
+                      </Link>
+                    </h4>
+                    {post.author && (
+                      <p className="text-[10px] text-adventure-muted mb-4 uppercase font-bold">By {post.author.name}</p>
+                    )}
+                    <div className="flex gap-2 mt-auto">
+                      <Link
+                        to={`/stories/${post.slug}`}
+                        className="flex-grow text-center py-2 bg-adventure-yellow text-adventure-black font-bold text-[10px] rounded-lg uppercase tracking-wider"
+                      >
+                        Read
+                      </Link>
+                      <button
+                        onClick={(e) => handleRemoveSaved(post._id, e)}
+                        className="px-3 py-2 border border-adventure-red/25 bg-adventure-red/5 text-adventure-red rounded-lg hover:bg-adventure-red hover:text-white transition-colors text-[10px] font-bold uppercase"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Following List */}
+        {activeTab === 'following' && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {followingList.length === 0 ? (
+              <div className="col-span-3 text-center py-16 glass-panel rounded-2xl border border-white/5">
+                <Users size={36} className="text-adventure-muted mx-auto mb-2 animate-pulse" />
+                <p className="text-xs text-adventure-muted uppercase font-bold">You are not following any leaders yet</p>
+                <Link to="/search" className="mt-3 inline-block text-xs text-adventure-yellow font-bold uppercase hover:underline">Find Leaders</Link>
+              </div>
+            ) : (
+              followingList.map((leader) => (
+                <div key={leader._id} className="rounded-2xl glass-panel border border-white/5 p-5 flex flex-col justify-between h-[180px]">
+                  <div className="flex gap-4">
+                    <img 
+                      src={leader.profilePhoto || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400'} 
+                      alt={leader.name} 
+                      className="w-14 h-14 rounded-full border border-white/10 object-cover" 
+                    />
+                    <div className="space-y-0.5">
+                      <h3 className="text-sm font-extrabold uppercase text-white tracking-wide">
+                        {leader.name}
+                      </h3>
+                      <span className="text-[10px] text-adventure-yellow font-bold uppercase tracking-wider block">
+                        {leader.role === 'guide' ? 'Certified Mountain Guide' : 'Expedition Organizer'}
+                      </span>
+                      {leader.bio && (
+                        <p className="text-[10px] text-adventure-muted line-clamp-2 leading-relaxed mt-1">
+                          {leader.bio}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="border-t border-white/5 pt-3 mt-3 flex items-center justify-between">
+                    <Link
+                      to={`/leaders/${leader._id}`}
+                      className="py-1.5 px-4 bg-adventure-yellow text-adventure-black font-extrabold text-[10px] uppercase tracking-wider rounded-lg hover:bg-white transition-all shadow-yellow-glow text-center w-full"
+                    >
+                      View Profile
                     </Link>
                   </div>
                 </div>
